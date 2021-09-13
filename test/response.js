@@ -100,6 +100,11 @@ describe('Response', () => {
 		});
 	});
 
+	it.only('should support json() with BOM', async () => {
+		const json = await new Response(String.fromCharCode(0xFEFF) + '1').json();
+		expect(json).to.equal(1);
+	});
+
 	it('should support blob() method', () => {
 		const res = new Response('a=1', {
 			method: 'POST',
