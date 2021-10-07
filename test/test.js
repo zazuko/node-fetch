@@ -552,11 +552,41 @@ describe('node-fetch', () => {
 			.and.have.property('code', 'ECONNRESET');
 	});
 
+	it('should follow redirect after empty chunked transfer-encoding', () => {
+		const url = `${base}redirect/chunked`;
+		return fetch(url).then(res => {
+			expect(res.status).to.equal(200);
+			expect(res.ok).to.be.true;
+		});
+	});
+
+	it('should handle chunked response with more than 1 chunk in the final packet', () => {
+		const url = `${base}chunked/multiple-ending`;
+		return fetch(url).then(res => {
+			expect(res.ok).to.be.true;
+
+			return res.text().then(result => {
+				expect(result).to.equal('foobar');
+			});
+		});
+	});
+
+	it('should handle chunked response with final chunk and EOM in separate packets', () => {
+		const url = `${base}chunked/split-ending`;
+		return fetch(url).then(res => {
+			expect(res.ok).to.be.true;
+
+			return res.text().then(result => {
+				expect(result).to.equal('foobar');
+			});
+		});
+	});
+
 	it('should handle DNS-error response', function() {
 		const url = 'http://domain.invalid';
 		return expect(fetch(url)).to.eventually.be.rejected
 			.and.be.an.instanceOf(FetchError)
-			.and.have.property('code', 'ENOTFOUND');
+			.and.have.property('code').that.matches(/ENOTFOUND|EAI_AGAIN/);
 	});
 
 	it('should reject invalid json response', function() {
